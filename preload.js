@@ -1,13 +1,4 @@
-// =========================================================//
-//                   SOLAR MONITOR DESKTOP                  //
-//                        preload.js                        //
-//=========================================================//
-
 const { contextBridge, ipcRenderer } = require('electron');
-
-// =========================================================//
-//              BRIDGE SECURISE ELECTRON <-> WEB            //
-//=========================================================//
 
 contextBridge.exposeInMainWorld('SolarMonitor', {
 
