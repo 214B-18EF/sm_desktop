@@ -48,6 +48,8 @@ const Config = {
     OfflineThresholdMin: 6,
     ReminderIntervalMin: 10,
     AppName            : 'Solar Monitor',
+    GithubOwner        : '214B-18EF',
+    GithubRepo         : 'sm_desktop',
     Window: {
         Width    : 1350,
         Height   : 800,
@@ -87,6 +89,66 @@ function CheckSiteVersion() {
             }
         });
     }).on('error', () => {});
+}
+
+//=========================================================//
+//              VERIFICATION MISES A JOUR APP              //
+//=========================================================//
+function CheckAppUpdate() {
+    const Url      = `api.github.com`;
+    const Options  = {
+        hostname: 'api.github.com',
+        path    : `/repos/${Config.GithubOwner}/${Config.GithubRepo}/releases/latest`,
+        method  : 'GET',
+        headers : {
+            'User-Agent'   : 'Solar-Monitor-Desktop',
+            'Authorization': `token ${Config.GithubToken}`
+        }
+    };
+
+    const Req = Https.request(Options, (Res) => {
+        let Raw = '';
+        Res.on('data',  Chunk => Raw += Chunk);
+        Res.on('end', () => {
+            try {
+                const Release    = JSON.parse(Raw);
+                const Latest     = Release.tag_name?.replace('v', '');
+                const Current    = app.getVersion();
+
+                if (!Latest || Latest === Current) return;
+
+                const DownloadUrl = Release.assets?.[0]?.browser_download_url;
+                if (!DownloadUrl) return;
+
+                // Afficher popup mise a jour
+                ShowUpdateDialog(Latest, Current, DownloadUrl);
+
+            } catch (Err) {
+                // Silencieux
+            }
+        });
+    });
+
+    Req.on('error', () => {});
+    Req.end();
+}
+
+function ShowUpdateDialog(Latest, Current, DownloadUrl) {
+    const { dialog } = require('electron');
+
+    dialog.showMessageBox({
+        type   : 'info',
+        title  : 'Mise a jour disponible',
+        message: `Une nouvelle version est disponible`,
+        detail : `Version actuelle : ${Current}\nNouvelle version : ${Latest}\n\nVoulez-vous telecharger la mise a jour ?`,
+        buttons: ['Installer maintenant', 'Plus tard'],
+        defaultId: 0,
+        cancelId : 1
+    }).then(Result => {
+        if (Result.response === 0) {
+            shell.openExternal(DownloadUrl);
+        }
+    });
 }
 
 // =========================================================//
@@ -492,7 +554,11 @@ app.whenReady().then(() => {
     StartPolling();
 
     CheckSiteVersion();
+
     setInterval(CheckSiteVersion, 30 * 60 * 1000);
+
+    CheckAppUpdate();
+    setInterval(CheckAppUpdate, 6 * 60 * 60 * 1000);
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
