@@ -1,6 +1,6 @@
 {
   "name": "solar-monitor-desktop",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Solar Monitoring Desktop",
   "main": "main.js",
   "scripts": {
