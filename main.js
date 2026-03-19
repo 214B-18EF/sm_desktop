@@ -38,7 +38,7 @@ else {
 
 const Config = {
     ApiBaseUrl         : 'https://cermesm.alwaysdata.net/api',
-    SiteUrl            : 'https://cermesm.alwaysdata.net',
+    SiteUrl            : 'https://cermesm.alwaysdata.net/home',
     CheckIntervalMs    : 60 * 1000,
     OfflineThresholdMin: 6,
     ReminderIntervalMin: 10,
@@ -295,7 +295,7 @@ function UpdateTrayMenu(Status) {
             label: 'Actualiser',
             click: () => {
                 if (MainWindow && !MainWindow.isDestroyed()) {
-                    MainWindow.loadURL(Config.SiteUrl);
+                    MainWindow.webContents.reloadIgnoringCache();
                 }
             }
         },
@@ -411,7 +411,7 @@ async function CheckEsp32Status() {
         const MinutesOffline = Esp32?.minutesSinceLastHeartbeat || 0;
         const CurrentStatus  = IsOnline ? 'online' : 'offline';
 
-        // ========== Transition online -> offline ==========
+        // ========== Transition online vers offline ==========
         if (LastKnownStatus === 'online' && CurrentStatus === 'offline') {
             SendNotification(
                 'ESP32 Hors Ligne',
@@ -432,7 +432,7 @@ async function CheckEsp32Status() {
             }
         }
 
-        // ========== Transition offline -> online ==========
+        // ========== Transition offline vers online ==========
         if (LastKnownStatus === 'offline' && CurrentStatus === 'online') {
             SendNotification(
                 'ESP32 De Retour En Ligne',
@@ -441,7 +441,7 @@ async function CheckEsp32Status() {
             MinutesOfflineAtLastReminder = 0;
         }
 
-        // ========== Premier demarrage - deja offline ==========
+        // ========== Premier demarrage, deja offline ==========
         if (LastKnownStatus === null && CurrentStatus === 'offline') {
             SendNotification(
                 'ESP32 Hors Ligne',
